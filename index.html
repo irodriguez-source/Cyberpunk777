@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CYBERPUNK 777 // NIGHT CITY PROTOCOL</title>
+  
+  <!-- Google Fonts: Orbitron, Rajdhani, Share Tech Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    /* ==========================================================================
+       CYBERPUNK 777 - COLOR PALETTE & VARIABLES
+       ========================================================================== */
+    :root {
+      --cp-yellow: #fcee0a;
+      --cp-cyan: #00f0ff;
+      --cp-pink: #ff003c;
+      --cp-magenta: #ff007f;
+      --cp-purple: #9d00ff;
+      --cp-blue: #05d9e8;
+      --cp-dark: #07070a;
+      --cp-darker: #020204;
+      --cp-card-bg: rgba(13, 14, 20, 0.82);
+      --cp-border: rgba(0, 240, 255, 0.35);
+      --cp-border-yellow: rgba(252, 238, 10, 0.5);
+      --cp-text: #ececed;
+      --cp-text-muted: #8b8f9e;
+      --font-display: 'Orbitron', sans-serif;
+      --font-body: 'Rajdhani', sans-serif;
+      --font-mono: 'Share Tech Mono', monospace;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--cp-darker);
+      color: var(--cp-text);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+      min-height: 100vh;
+      font-size: 16px;
+      line-height: 1.5;
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(255, 0, 60, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 60%, rgba(0, 240, 255, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 50% 90%, rgba(157, 0, 255, 0.08) 0%, transparent 50%);
+    }
+
+    /* ==========================================================================
+       CRT SCANLINES & VIGNETTE OVERLAYS
+       ========================================================================== */
+    .scanlines {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(
+        to bottom,
+        rgba(255,255,255,0),
+        rgba(255,255,255,0) 50%,
+        rgba(0, 0, 0, 0.35) 50%,
+        rgba(0, 0, 0, 0.35)
+      );
+      background-size: 100% 4px;
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.65;
+    }
+
+    .vignette {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      box-shadow: inset 0 0 120px rgba(0,0,0,0.88);
+      pointer-events: none;
+      z-index: 998;
+    }
+
+    #bg-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ==========================================================================
+       CONTAINER & GRID LAYOUT
+       ========================================================================== */
+    .app-container {
+      position: relative;
+      z-index: 10;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 10px 24px 60px;
+    }
+
+    /* ==========================================================================
+       CYBER TOP BAR / HUD
+       ========================================================================== */
+    .cyber-hud-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: rgba(10, 11, 16, 0.85);
+      border-bottom: 2px solid var(--cp-yellow);
+      clip-path: polygon(0 0, 100% 0, 98.5% 100%, 1.5% 100%);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(252, 238, 10, 0.15);
+      margin-bottom: 25px;
+    }
+
+    .hud-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .hud-logo {
+      background: var(--cp-yellow);
+      color: #000;
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 1.2rem;
+      padding: 2px 10px;
+      clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+      letter-spacing: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hud-sub-status {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--cp-cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--cp-cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--cp-cyan);
+      animation: pulse-glow 1.5s infinite;
+    }
+
+    .hud-telemetry {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+
+    .telemetry-item {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .telemetry-label {
+      color: var(--cp-text-muted);
+      font-size: 0.65rem;
+      letter-spacing: 1px;
+    }
+
+    .telemetry-val {
+      color: var(--cp-yellow);
+      font-weight: 700;
+    }
+
+    .hud-controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-hud {
+      background: rgba(0, 240, 255, 0.1);
+      border: 1px solid var(--cp-cyan);
+      color: var(--cp-cyan);
+      padding: 6px 12px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      clip-path: polygon(0 0, 100% 0, 90% 100%, 0 100%);
+    }
+
+    .btn-hud:hover, .btn-hud.active {
+      background: var(--cp-cyan);
+      color: #000;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+      transform: translateY(-1px);
+    }
+
+    /* ==========================================================================
+       HERO SECTION WITH GLITCH HEADER
+       ========================================================================== */
+    .hero-section {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 30px;
+      margin-bottom: 40px;
+      align-items: center;
+    }
+
+    @media (max-width: 992px) {
+      .hero-section {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .hero-content {
+      position: relative;
+    }
+
+    .cyber-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 0, 60, 0.15);
+      border-left: 4px solid var(--cp-pink);
+      color: var(--cp-pink);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      padding: 4px 12px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    /* Glitch Title */
+    .glitch-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
+      font-weight: 900;
+      line-height: 1.05;
+      text-transform: uppercase;
+      color: #ffffff;
+      position: relative;
+      margin-bottom: 15px;
+      text-shadow: 
+        0 0 10px rgba(0, 240, 255, 0.7),
+        0 0 25px rgba(0, 240, 255, 0.3);
+    }
+
+    .glitch-title span {
+      color: var(--cp-yellow);
+      text-shadow: 0 0 20px rgba(252, 238, 10, 0.8);
+    }
+
+    .hero-desc {
+      font-size: 1.2rem;
+      color: var(--cp-text-muted);
+      margin-bottom: 25px;
+      max-width: 600px;
+      font-weight: 500;
+      border-left: 2px solid var(--cp-cyan);
+      padding-left: 14px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+
+    /* Cyberpunk Cut Buttons */
+    .btn-cyber {
+      position: relative;
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 14px 28px;
+      color: #000;
+      background: var(--cp-yellow);
+      border: none;
+      cursor: pointer;
+      clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+      transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 4px 4px 0px #000, 0 0 20px rgba(252, 238, 10, 0.4);
+    }
+
+    .btn-cyber:hover {
+      background: #ffffff;
+      box-shadow: 4px 4px 0px var(--cp-pink), 0 0 30px rgba(255, 255, 255, 0.8);
+      transform: translate(-2px, -2px);
+    }
+
+    .btn-cyber:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0px 0px 0px #000;
+    }
+
+    .btn-cyber-cyan {
+      background: var(--cp-cyan);
+      box-shadow: 4px 4px 0px #000, 0 0 20px rgba(0, 240, 255, 0.4);
+    }
+
+    .btn-cyber-cyan:hover {
+      background: #ffffff;
+      box-shadow: 4px 4px 0px var(--cp-yellow), 0 0 30px rgba(0, 240, 255, 0.8);
+    }
+
+    .btn-cyber-outline {
+      background: rgba(13, 14, 20, 0.8);
+      color: var(--cp-cyan);
+      border: 1px solid var(--cp-cyan);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+    }
+
+    .btn-cyber-outline:hover {
+      background: var(--cp-cyan);
+      color: #000;
+      box-shadow: 0 0 25px var(--cp-cyan);
+    }
+
+    /* Live Mini Threat Bar */
+    .threat-level-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      background: rgba(10, 10, 15, 0.8);
+      border: 1px dashed var(--cp-pink);
+      max-width: 460px;
+    }
+
+    .threat-indicator {
+      display: flex;
+      gap: 4px;
+    }
+
+    .threat-block {
+      width: 16px;
+      height: 12px;
+      background: rgba(255, 0, 60, 0.2);
+      clip-path: polygon(0 0, 100% 0, 70% 100%, 0 100%);
+    }
+
+    .threat-block.active {
+      background: var(--cp-pink);
+      box-shadow: 0 0 8px var(--cp-pink);
+      animation: threat-blink 1s infinite alternate;
+    }
+
+    /* 3D Holographic Card */
+    .holo-card-container {
+      perspective: 1000px;
+    }
+
+    .holo-card {
+      position: relative;
+      background: linear-gradient(135deg, rgba(20, 24, 38, 0.9) 0%, rgba(8, 10, 16, 0.95) 100%);
+      border: 1px solid var(--cp-cyan);
+      border-radius: 4px;
+      padding: 24px;
+      box-shadow: 
+        inset 0 0 30px rgba(0, 240, 255, 0.1),
+        0 15px 35px rgba(0, 0, 0, 0.6),
+        0 0 25px rgba(0, 240, 255, 0.2);
+      clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 24px 100%, 0 calc(100% - 24px));
+      transition: transform 0.1s ease;
+      transform-style: preserve-3d;
+    }
+
+    .holo-card::before {
+      content: "NC-777 PROTOCOL";
+      position: absolute;
+      top: 6px;
+      right: 32px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--cp-yellow);
+      letter-spacing: 2px;
+    }
+
+    .holo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+    }
+
+    .holo-avatar {
+      width: 70px;
+      height: 70px;
+      border: 2px solid var(--cp-yellow);
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%2305070f"/><circle cx="50" cy="40" r="22" fill="%2300f0ff" opacity="0.8"/><polygon points="20,95 80,95 70,65 30,65" fill="%23fcee0a" opacity="0.9"/><line x1="10" y1="35" x2="90" y2="35" stroke="%23ff003c" stroke-width="2"/></svg>') center/cover;
+      position: relative;
+      box-shadow: 0 0 15px rgba(252, 238, 10, 0.5);
+    }
+
+    .holo-avatar::after {
+      content: "V.777";
+      position: absolute;
+      bottom: -6px;
+      right: -6px;
+      background: var(--cp-pink);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      padding: 1px 4px;
+      font-weight: bold;
+    }
+
+    .holo-identity h3 {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .holo-identity p {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--cp-cyan);
+    }
+
+    .holo-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat-box {
+      background: rgba(0, 0, 0, 0.4);
+      border-left: 3px solid var(--cp-yellow);
+      padding: 8px 12px;
+    }
+
+    .stat-title {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--cp-text-muted);
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .stat-progress {
+      width: 100%;
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      margin-top: 4px;
+      position: relative;
+    }
+
+    .stat-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--cp-cyan), var(--cp-yellow));
+      box-shadow: 0 0 8px var(--cp-cyan);
+    }
+
+    .holo-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.15);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+    }
+
+    /* ==========================================================================
+       SECTION HEADERS
+       ========================================================================== */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin: 45px 0 25px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(0, 240, 255, 0.3);
+      position: relative;
+    }
+
+    .section-header::after {
+      content: "";
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 80px;
+      height: 3px;
+      background: var(--cp-yellow);
+      box-shadow: 0 0 10px var(--cp-yellow);
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-title i {
+      color: var(--cp-cyan);
+      font-size: 1.5rem;
+    }
+
+    .section-tag {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--cp-yellow);
+      background: rgba(252, 238, 10, 0.1);
+      padding: 2px 8px;
+      border: 1px solid var(--cp-yellow);
+      clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+    }
+
+    /* ==========================================================================
+       CYBERWARE MATRIX (IMPLANTS SHOWCASE)
+       ========================================================================== */
+    .cyberware-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+    }
+
+    .cyberware-card {
+      background: var(--cp-card-bg);
+      border: 1px solid var(--cp-border);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%);
+      transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+      backdrop-filter: blur(8px);
+    }
+
+    .cyberware-card:hover {
+      border-color: var(--cp-yellow);
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(252, 238, 10, 0.15), 0 0 15px rgba(0, 240, 255, 0.2);
+    }
+
+    .cyberware-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0;
+      width: 4px; height: 100%;
+      background: var(--cp-cyan);
+      transition: background 0.3s;
+    }
+
+    .cyberware-card:hover::before {
+      background: var(--cp-yellow);
+      box-shadow: 0 0 12px var(--cp-yellow);
+    }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      margin-bottom: 12px;
+      color: var(--cp-text-muted);
+    }
+
+    .card-tier {
+      color: var(--cp-yellow);
+      font-weight: 700;
+      border: 1px solid var(--cp-yellow);
+      padding: 1px 6px;
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+
+    .card-desc {
+      color: var(--cp-text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 18px;
+      min-height: 48px;
+    }
+
+    .card-specs {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 10px;
+      border-radius: 2px;
+      margin-bottom: 18px;
+    }
+
+    .spec-row {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+
+    .spec-name { color: var(--cp-text-muted); }
+    .spec-value { color: var(--cp-cyan); font-weight: 700; }
+
+    .card-action {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-price {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--cp-yellow);
+    }
+
+    .btn-install {
+      background: transparent;
+      border: 1px solid var(--cp-cyan);
+      color: var(--cp-cyan);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: bold;
+      padding: 8px 16px;
+      cursor: pointer;
+      clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+      transition: all 0.2s;
+    }
+
+    .btn-install:hover {
+      background: var(--cp-cyan);
+      color: #000;
+      box-shadow: 0 0 15px var(--cp-cyan);
+    }
+
+    /* ==========================================================================
+       TWO COLUMN: BREACH PROTOCOL GAME & NEURAL TERMINAL
+       ========================================================================== */
+    .interact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-top: 40px;
+    }
+
+    @media (max-width: 992px) {
+      .interact-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Breach Protocol Panel */
+    .breach-panel {
+      background: var(--cp-card-bg);
+      border: 2px solid var(--cp-pink);
+      padding: 24px;
+      position: relative;
+      clip-path: polygon(0 0, calc(100% - 25px) 0, 100% 25px, 100% 100%, 25px 100%, 0 calc(100% - 25px));
+      box-shadow: 0 0 25px rgba(255, 0, 60, 0.2);
+    }
+
+    .panel-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 0, 60, 0.3);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+
+    .panel-top h3 {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      color: var(--cp-pink);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .breach-target-seq {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px dashed var(--cp-yellow);
+      padding: 10px 14px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .target-title {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--cp-yellow);
+    }
+
+    .sequence-boxes {
+      display: flex;
+      gap: 8px;
+    }
+
+    .seq-box {
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      font-weight: bold;
+      background: rgba(252, 238, 10, 0.15);
+      border: 1px solid var(--cp-yellow);
+      color: var(--cp-yellow);
+      padding: 4px 8px;
+      min-width: 32px;
+      text-align: center;
+    }
+
+    .seq-box.matched {
+      background: var(--cp-cyan);
+      color: #000;
+      border-color: #fff;
+      box-shadow: 0 0 10px var(--cp-cyan);
+    }
+
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .matrix-cell {
+      background: rgba(18, 20, 28, 0.9);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: var(--cp-cyan);
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      font-weight: 700;
+      padding: 14px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .matrix-cell:hover:not(.disabled) {
+      background: var(--cp-pink);
+      color: #fff;
+      border-color: #fff;
+      box-shadow: 0 0 15px var(--cp-pink);
+      transform: scale(1.05);
+    }
+
+    .matrix-cell.highlight-row {
+      border-color: var(--cp-yellow);
+      background: rgba(252, 238, 10, 0.08);
+    }
+
+    .matrix-cell.highlight-col {
+      border-color: var(--cp-cyan);
+      background: rgba(0, 240, 255, 0.08);
+    }
+
+    .matrix-cell.used {
+      opacity: 0.25;
+      cursor: not-allowed;
+      border-color: transparent;
+      text-decoration: line-through;
+    }
+
+    .breach-status-msg {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      min-height: 24px;
+      color: var(--cp-text-muted);
+      text-align: center;
+    }
+
+    /* Terminal Console */
+    .terminal-panel {
+      background: rgba(8, 9, 13, 0.95);
+      border: 1px solid var(--cp-cyan);
+      border-radius: 4px;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.15);
+      display: flex;
+      flex-direction: column;
+      height: 440px;
+    }
+
+    .terminal-header {
+      background: rgba(0, 240, 255, 0.12);
+      border-bottom: 1px solid var(--cp-cyan);
+      padding: 8px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--cp-cyan);
+    }
+
+    .terminal-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+
+    .terminal-body {
+      flex: 1;
+      padding: 14px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      overflow-y: auto;
+      color: #9bf0ff;
+    }
+
+    .terminal-log-line {
+      margin-bottom: 6px;
+      line-height: 1.4;
+      word-break: break-all;
+    }
+
+    .terminal-log-line.system { color: var(--cp-yellow); }
+    .terminal-log-line.error { color: var(--cp-pink); }
+    .terminal-log-line.success { color: #00ff88; }
+    .terminal-log-line.info { color: var(--cp-cyan); }
+
+    .terminal-input-row {
+      display: flex;
+      align-items: center;
+      padding: 10px 14px;
+      background: rgba(0, 0, 0, 0.6);
+      border-top: 1px solid rgba(0, 240, 255, 0.2);
+    }
+
+    .terminal-prompt-prefix {
+      color: var(--cp-yellow);
+      font-family: var(--font-mono);
+      font-weight: bold;
+      margin-right: 8px;
+      white-space: nowrap;
+    }
+
+    .terminal-input {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      width: 100%;
+      outline: none;
+    }
+
+    /* ==========================================================================
+       CORPORATIONS & FACTIONS RADAR
+       ========================================================================== */
+    .corps-section {
+      margin-top: 50px;
+    }
+
+    .corps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .corp-card {
+      background: rgba(12, 14, 20, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 18px;
+      position: relative;
+      transition: all 0.25s;
+    }
+
+    .corp-card:hover {
+      border-color: var(--cp-cyan);
+      background: rgba(15, 20, 32, 0.9);
+      box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.1);
+    }
+
+    .corp-name {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .corp-threat {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--cp-pink);
+      margin-bottom: 10px;
+    }
+
+    .corp-desc {
+      font-size: 0.85rem;
+      color: var(--cp-text-muted);
+    }
+
+    /* ==========================================================================
+       FOOTER
+       ========================================================================== */
+    .cyber-footer {
+      margin-top: 60px;
+      border-top: 2px solid rgba(252, 238, 10, 0.3);
+      padding-top: 25px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--cp-text-muted);
+      gap: 15px;
+    }
+
+    .footer-warning {
+      color: var(--cp-yellow);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ==========================================================================
+       NOTIFICATION POPUP (TOAST)
+       ========================================================================== */
+    .cyber-toast {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      background: rgba(10, 12, 18, 0.95);
+      border: 1px solid var(--cp-cyan);
+      border-left: 5px solid var(--cp-yellow);
+      padding: 14px 20px;
+      font-family: var(--font-mono);
+      color: #fff;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.4);
+      z-index: 10000;
+      transform: translateX(120%);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      max-width: 380px;
+    }
+
+    .cyber-toast.show {
+      transform: translateX(0);
+    }
+
+    /* ==========================================================================
+       KEYFRAME ANIMATIONS
+       ========================================================================== */
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    @keyframes threat-blink {
+      0% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+
+    /* CRT Glitch classes */
+    .glitch-active {
+      animation: glitch-anim 0.2s 2;
+    }
+
+    @keyframes glitch-anim {
+      0% { transform: translate(0); filter: hue-rotate(0deg); }
+      20% { transform: translate(-3px, 2px); filter: hue-rotate(90deg); }
+      40% { transform: translate(3px, -2px); filter: hue-rotate(180deg); }
+      60% { transform: translate(-2px, -1px); filter: hue-rotate(270deg); }
+      80% { transform: translate(2px, 1px); }
+      100% { transform: translate(0); filter: hue-rotate(0deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Retro CRT Scanline & Vignette Effect -->
+  <div class="scanlines" id="scanlines-layer"></div>
+  <div class="vignette"></div>
+
+  <!-- Interactive Canvas Particle Grid -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- Notification Toast -->
+  <div class="cyber-toast" id="cyber-toast">
+    <i class="fa-solid fa-microchip" style="color: var(--cp-yellow); font-size: 1.3rem;"></i>
+    <div id="toast-message">NEURAL LINK CONNECTED</div>
+  </div>
+
+  <div class="app-container">
+
+    <!-- TOP HUD BAR -->
+    <header class="cyber-hud-top">
+      <div class="hud-brand">
+        <div class="hud-logo">
+          <i class="fa-solid fa-bolt"></i> 777.OS
+        </div>
+        <div class="hud-sub-status">
+          <span class="status-dot"></span>
+          <span>NIGHT CITY NETLINK: SECURED</span>
+        </div>
+      </div>
+
+      <div class="hud-telemetry">
+        <div class="telemetry-item">
+          <span class="telemetry-label">SUB-GRID NODE</span>
+          <span class="telemetry-val">WATSON-09</span>
+        </div>
+        <div class="telemetry-item">
+          <span class="telemetry-label">CYBER-TIME</span>
+          <span class="telemetry-val" id="hud-clock">2077.08.28 23:59:59</span>
+        </div>
+        <div class="telemetry-item">
+          <span class="telemetry-label">RAM / BUFFER</span>
+          <span class="telemetry-val" id="hud-ram">16.4 / 32.0 EB</span>
+        </div>
+      </div>
+
+      <div class="hud-controls">
+        <button class="btn-hud" id="btn-sound-toggle" title="Alternar Sonido Synth">
+          <i class="fa-solid fa-volume-high" id="sound-icon"></i> <span id="sound-text">AUDIO ON</span>
+        </button>
+        <button class="btn-hud" id="btn-glitch-mode" title="Disparar Glitch">
+          <i class="fa-solid fa-triangle-exclamation"></i> OVERDRIVE
+        </button>
+      </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="hero-section">
+      <div class="hero-content">
+        <div class="cyber-badge">
+          <i class="fa-solid fa-shield-halved"></i> PROTOCOLO ARASAKA 777 // ACTIVO
+        </div>
+
+        <h1 class="glitch-title" data-text="CYBERPUNK 777">
+          CYBERPUNK <span>777</span>
+        </h1>
+
+        <p class="hero-desc">
+          Bienvenido a la red neuronal clandestina de Night City. Domina el ciberespacio, mejora tu bio-hardware con implantes militares de última generación y hackea los servidores corporativos.
+        </p>
+
+        <div class="hero-actions">
+          <button class="btn-cyber" onclick="triggerCyberBreach()">
+            <i class="fa-solid fa-terminal"></i> INICIAR BREACH PROTOCOL
+          </button>
+          <button class="btn-cyber btn-cyber-cyan" onclick="overclockSystem()">
+            <i class="fa-solid fa-microchip"></i> OVERCLOCK BIOWARE
+          </button>
+          <button class="btn-cyber btn-cyber-outline" onclick="scrollToSection('cyberware')">
+            <i class="fa-solid fa-cart-shopping"></i> MERCADO NEGRO
+          </button>
+        </div>
+
+        <div class="threat-level-bar">
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--cp-pink); font-weight: bold;">
+            <i class="fa-solid fa-radiation"></i> NIVEL DE ALERTA MAX-TAC:
+          </span>
+          <div class="threat-indicator">
+            <div class="threat-block active"></div>
+            <div class="threat-block active"></div>
+            <div class="threat-block active"></div>
+            <div class="threat-block active"></div>
+            <div class="threat-block"></div>
+          </div>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--cp-yellow); margin-left: auto;">
+            80% CRÍTICO
+          </span>
+        </div>
+      </div>
+
+      <!-- Holographic Character Profile Card -->
+      <div class="holo-card-container">
+        <div class="holo-card" id="holo-card">
+          <div class="holo-header">
+            <div style="display: flex; gap: 14px; align-items: center;">
+              <div class="holo-avatar"></div>
+              <div class="holo-identity">
+                <h3>V-MERCENARIO <i class="fa-solid fa-certificate" style="color: var(--cp-cyan); font-size: 0.9rem;"></i></h3>
+                <p>NETRUNNER CLASE S // REPUTACIÓN: 50</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="holo-stats">
+            <div class="stat-box">
+              <div class="stat-title">Sincronía Neuronal</div>
+              <div class="stat-value" id="stat-sync">99.8%</div>
+              <div class="stat-progress"><div class="stat-bar-fill" style="width: 99.8%;"></div></div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-title">Carga Térmica Bio-CPU</div>
+              <div class="stat-value" id="stat-temp" style="color: var(--cp-pink);">42°C</div>
+              <div class="stat-progress"><div class="stat-bar-fill" style="width: 42%; background: var(--cp-pink);"></div></div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-title">Ciberdeck Buffer</div>
+              <div class="stat-value" id="stat-deck">12 / 12 Slots</div>
+              <div class="stat-progress"><div class="stat-bar-fill" style="width: 100%;"></div></div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-title">Eurodólares (E$)</div>
+              <div class="stat-value" id="stat-eddies" style="color: var(--cp-yellow);">777,450</div>
+              <div class="stat-progress"><div class="stat-bar-fill" style="width: 85%; background: var(--cp-yellow);"></div></div>
+            </div>
+          </div>
+
+          <div class="holo-footer">
+            <span><i class="fa-solid fa-network-wired"></i> SUBNET: ARASAKA_INTRA_NODE</span>
+            <span style="color: var(--cp-cyan);"><i class="fa-solid fa-lock-open"></i> DESENCRIPTADO</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: CYBERWARE MARKETPLACE -->
+    <section id="cyberware">
+      <div class="section-header">
+        <h2 class="section-title"><i class="fa-solid fa-microchip"></i> IMPLANTES & CIBERWARE MILITAR</h2>
+        <span class="section-tag">CATÁLOGO 2077</span>
+      </div>
+
+      <div class="cyberware-grid">
+        <!-- Item 1 -->
+        <div class="cyberware-card">
+          <div class="card-meta">
+            <span>SISTEMA NERVIOSO</span>
+            <span class="card-tier">LEGENDARIO // TIER 5++</span>
+          </div>
+          <h3 class="card-title">Sandevistan Mk.7 "Apogee"</h3>
+          <p class="card-desc">Ralentiza el flujo temporal en un 85% para el usuario. Aumenta la velocidad de sinapsis y daño crítico.</p>
+          <div class="card-specs">
+            <div class="spec-row"><span class="spec-name">Dilatación Temporal:</span><span class="spec-value">+85% (16s)</span></div>
+            <div class="spec-row"><span class="spec-name">Enfriamiento:</span><span class="spec-value">12.0s</span></div>
+            <div class="spec-row"><span class="spec-name">Consumo de Humanidad:</span><span class="spec-value">-18 pts</span></div>
+          </div>
+          <div class="card-action">
+            <div class="card-price">E$ 115,000</div>
+            <button class="btn-install" onclick="buyCyberware('Sandevistan Mk.7', 115000)">INSTALAR</button>
+          </div>
+        </div>
+
+        <!-- Item 2 -->
+        <div class="cyberware-card">
+          <div class="card-meta">
+            <span>BRAZOS</span>
+            <span class="card-tier">MILITAR // TIER 5</span>
+          </div>
+          <h3 class="card-title">Mantis Blades Térmicas XT</h3>
+          <p class="card-desc">Cuchillas retráctiles de aleación de titanio sobrecalentadas con filo de plasma que infligen daño de quemadura.</p>
+          <div class="card-specs">
+            <div class="spec-row"><span class="spec-name">DPS Base:</span><span class="spec-value">745.2 dmg/s</span></div>
+            <div class="spec-row"><span class="spec-name">Efecto Térmico:</span><span class="spec-value">100% Incineración</span></div>
+            <div class="spec-row"><span class="spec-name">Velocidad de Ataque:</span><span class="spec-value">3.2 golpes/s</span></div>
+          </div>
+          <div class="card-action">
+            <div class="card-price">E$ 84,200</div>
+            <button class="btn-install" onclick="buyCyberware('Mantis Blades Térmicas', 84200)">INSTALAR</button>
+          </div>
+        </div>
+
+        <!-- Item 3 -->
+        <div class="cyberware-card">
+          <div class="card-meta">
+            <span>SISTEMA OCULAR</span>
+            <span class="card-tier">KANG TAO // TIER 5</span>
+          </div>
+          <h3 class="card-title">Kiroshi Optics "Clairvoyance" 8K</h3>
+          <p class="card-desc">Escaneo biométrico instantáneo de debilidades, visión a través de muros de hormigón y zoom cuántico 200x.</p>
+          <div class="card-specs">
+            <div class="spec-row"><span class="spec-name">Alcance Radar:</span><span class="spec-value">60 metros</span></div>
+            <div class="spec-row"><span class="spec-name">Probabilidad Crítica:</span><span class="spec-value">+25%</span></div>
+            <div class="spec-row"><span class="spec-name">Resaltado de Cámaras:</span><span class="spec-value">Automático</span></div>
+          </div>
+          <div class="card-action">
+            <div class="card-price">E$ 45,000</div>
+            <button class="btn-install" onclick="buyCyberware('Kiroshi Optics 8K', 45000)">INSTALAR</button>
+          </div>
+        </div>
+
+        <!-- Item 4 -->
+        <div class="cyberware-card">
+          <div class="card-meta">
+            <span>SISTEMA OPERATIVO</span>
+            <span class="card-tier">ARASAKA BLACK-OPS</span>
+          </div>
+          <h3 class="card-title">Cyberdeck Arasaka Shadow-777</h3>
+          <p class="card-desc">Ciberdeck diseñado para operaciones de infiltración profunda y neutralización instantánea de ICE corporativo.</p>
+          <div class="card-specs">
+            <div class="spec-row"><span class="spec-name">Memoria RAM:</span><span class="spec-value">24 Unidades</span></div>
+            <div class="spec-row"><span class="spec-name">Tasa de Carga Rápida:</span><span class="spec-value">+65%</span></div>
+            <div class="spec-row"><span class="spec-name">Demonios Precargados:</span><span class="spec-value">Blackwall Protocol</span></div>
+          </div>
+          <div class="card-action">
+            <div class="card-price">E$ 250,000</div>
+            <button class="btn-install" onclick="buyCyberware('Cyberdeck Arasaka Shadow', 250000)">INSTALAR</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: INTERACTIVE HACKING & TERMINAL -->
+    <div class="interact-grid" id="breach-section">
+      
+      <!-- MINI-GAME: BREACH PROTOCOL -->
+      <div class="breach-panel">
+        <div class="panel-top">
+          <h3><i class="fa-solid fa-code-merge"></i> PROTOCOLO DE VULNERABILIDAD // HACK</h3>
+          <span style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--cp-yellow);" id="breach-timer">BUFFER: 4 SLOTS</span>
+        </div>
+
+        <div class="breach-target-seq">
+          <span class="target-title">SECUENCIA OBJETIVO:</span>
+          <div class="sequence-boxes" id="target-sequence">
+            <!-- Dynamic Boxes -->
+          </div>
+        </div>
+
+        <p style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--cp-cyan); margin-bottom: 10px;">
+          <i class="fa-solid fa-circle-info"></i> Selecciona los códigos alternando Filas y Columnas para completar la secuencia:
+        </p>
+
+        <div class="matrix-grid" id="breach-grid">
+          <!-- Dynamic 4x4 Grid -->
+        </div>
+
+        <div class="breach-status-msg" id="breach-msg">SELECCIONA UN NODO DE LA PRIMERA FILA</div>
+      </div>
+
+      <!-- NEURAL TERMINAL CONSOLE -->
+      <div class="terminal-panel">
+        <div class="terminal-header">
+          <div class="terminal-dots">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+          </div>
+          <div><i class="fa-solid fa-terminal"></i> NC_NETRUNNER_SHELL v7.77</div>
+          <div>ROOT ACCESS</div>
+        </div>
+
+        <div class="terminal-body" id="terminal-body">
+          <div class="terminal-log-line system">[SISTEMA] Conexión establecida con la subred 192.777.0.1 (Watson).</div>
+          <div class="terminal-log-line info">[INFO] Escribe <b style="color: var(--cp-yellow);">'help'</b> para ver los comandos disponibles.</div>
+          <div class="terminal-log-line info">[INFO] Comandos sugeridos: <span style="color: var(--cp-cyan);">scan, hack, implants, eddies, clear, matrix</span></div>
+        </div>
+
+        <div class="terminal-input-row">
+          <span class="terminal-prompt-prefix">V@NETRUNNER:~$</span>
+          <input type="text" class="terminal-input" id="terminal-input" placeholder="Ingresa comando..." autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SECTION: CORPORATIONS MONITOR -->
+    <section class="corps-section">
+      <div class="section-header">
+        <h2 class="section-title"><i class="fa-solid fa-building-shield"></i> MONITOREO DE MEGACORPORACIONES</h2>
+        <span class="section-tag">INTEL EN VIVO</span>
+      </div>
+
+      <div class="corps-grid">
+        <div class="corp-card">
+          <div class="corp-name" style="color: #ff003c;">ARASAKA CORP</div>
+          <div class="corp-threat"><i class="fa-solid fa-triangle-exclamation"></i> ICE NIVEL NEGRO // ALERTA ALTA</div>
+          <div class="corp-desc">Especialistas en seguridad militar, biotecnología y extracción de engramas del alma (Relic).</div>
+        </div>
+        <div class="corp-card">
+          <div class="corp-name" style="color: #00f0ff;">MILITECH SYSTEMS</div>
+          <div class="corp-threat"><i class="fa-solid fa-shield"></i> DEFENSA DE ASALTO // ALERTA MEDIA</div>
+          <div class="corp-desc">Fabricante de armamento pesado y hardware cibernético de combate táctico para el NUSA.</div>
+        </div>
+        <div class="corp-card">
+          <div class="corp-name" style="color: #fcee0a;">KANG TAO</div>
+          <div class="corp-threat"><i class="fa-solid fa-crosshairs"></i> ARMAS INTELIGENTES // ICE DINÁMICO</div>
+          <div class="corp-desc">Líderes en tecnología de proyectiles autoguiados de seguimiento neural y microelectrónica.</div>
+        </div>
+        <div class="corp-card">
+          <div class="corp-name" style="color: #a855f7;">NETWATCH</div>
+          <div class="corp-threat"><i class="fa-solid fa-lock"></i> GUARDIANES DEL BLACKWALL</div>
+          <div class="corp-desc">Agencia encargada de contener las Inteligencias Artificiales rogue más allá del Blackwall.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="cyber-footer">
+      <div class="footer-warning">
+        <i class="fa-solid fa-triangle-exclamation"></i> ADVERTENCIA: ACCESO NO AUTORIZADO A ESTA TERMINAL PENALIZADO POR LA LEY DE NIGHT CITY
+      </div>
+      <div>
+        <span>CYBERPUNK 777 INTERFACE</span> // <span>NEO-TOKYO & NIGHT CITY ARCHITECTURE</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    /* ==========================================================================
+       1. SYNTHESIZED WEB AUDIO API (SFX)
+       ========================================================================== */
+    let audioCtx = null;
+    let soundEnabled = true;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playSynthSound(type) {
+      if (!soundEnabled) return;
+      try {
+        initAudio();
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'beep') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(800, now);
+          osc.frequency.exponentialRampToValueAtTime(1400, now + 0.08);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        } else if (type === 'click') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(1200, now);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+          osc.start(now);
+          osc.stop(now + 0.04);
+        } else if (type === 'success') {
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.setValueAtTime(660, now + 0.08);
+          osc.frequency.setValueAtTime(880, now + 0.16);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        } else if (type === 'error') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(150, now);
+          osc.frequency.setValueAtTime(100, now + 0.1);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === 'hack') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(300, now);
+          osc.frequency.exponentialRampToValueAtTime(1800, now + 0.25);
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        }
+      } catch (e) {
+        console.log("Audio not allowed yet or error:", e);
+      }
+    }
+
+    // Toggle sound
+    document.getElementById('btn-sound-toggle').addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      const btn = document.getElementById('btn-sound-toggle');
+      const icon = document.getElementById('sound-icon');
+      const text = document.getElementById('sound-text');
+      if (soundEnabled) {
+        btn.classList.add('active');
+        icon.className = 'fa-solid fa-volume-high';
+        text.innerText = 'AUDIO ON';
+        showToast('AUDIO SINTETIZADOR ACTIVADO');
+        playSynthSound('beep');
+      } else {
+        btn.classList.remove('active');
+        icon.className = 'fa-solid fa-volume-xmark';
+        text.innerText = 'AUDIO MUTE';
+        showToast('AUDIO MUTALIZADO');
+      }
+    });
+
+    // Overdrive glitch trigger
+    document.getElementById('btn-glitch-mode').addEventListener('click', () => {
+      document.body.classList.add('glitch-active');
+      playSynthSound('hack');
+      showToast('⚠️ SISTEMA EN MODO OVERDRIVE // GLITCH ACTIVO');
+      setTimeout(() => {
+        document.body.classList.remove('glitch-active');
+      }, 500);
+    });
+
+    /* ==========================================================================
+       2. INTERACTIVE CANVAS BACKGROUND (CYBER GRID & PARTICLES)
+       ========================================================================== */
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let mouse = { x: null, y: null, radius: 120 };
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.x;
+      mouse.y = e.y;
+    });
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2 + 1;
+        this.speedX = (Math.random() - 0.5) * 1.2;
+        this.speedY = (Math.random() - 0.5) * 1.2;
+        this.color = Math.random() > 0.6 ? '#fcee0a' : (Math.random() > 0.5 ? '#ff003c' : '#00f0ff');
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+
+        // Mouse interaction
+        if (mouse.x && mouse.y) {
+          let dx = mouse.x - this.x;
+          let dy = mouse.y - this.y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < mouse.radius) {
+            this.x -= (dx / dist) * 2.5;
+            this.y -= (dy / dist) * 2.5;
+          }
+        }
+      }
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = this.color;
+        ctx.fillRect(this.x, this.y, this.size, this.size);
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    function initParticles() {
+      particles = [];
+      const count = Math.floor((canvas.width * canvas.height) / 18000);
+      for (let i = 0; i < count; i++) {
+        particles.push(new Particle());
+      }
+    }
+    initParticles();
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw faint cyber grid
+      ctx.strokeStyle = 'rgba(0, 240, 255, 0.03)';
+      ctx.lineWidth = 1;
+      const gridSize = 60;
+      for (let x = 0; x < canvas.width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+
+      // Connect particles
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+        for (let j = i + 1; j < particles.length; j++) {
+          let dx = particles[i].x - particles[j].x;
+          let dy = particles[i].y - particles[j].y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 90) {
+            ctx.strokeStyle = `rgba(0, 240, 255, ${0.15 - dist/90 * 0.15})`;
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    /* ==========================================================================
+       3. 3D CARD TILT EFFECT
+       ========================================================================== */
+    const holoCard = document.getElementById('holo-card');
+    if (holoCard) {
+      document.addEventListener('mousemove', (e) => {
+        const rect = holoCard.getBoundingClientRect();
+        const cardX = rect.left + rect.width / 2;
+        const cardY = rect.top + rect.height / 2;
+        const angleX = (e.clientY - cardY) / 25;
+        const angleY = (cardX - e.clientX) / 25;
+        holoCard.style.transform = `rotateX(${angleX}deg) rotateY(${angleY}deg)`;
+      });
+    }
+
+    /* ==========================================================================
+       4. HUD CLOCK & TELEMETRY
+       ========================================================================== */
+    function updateClock() {
+      const now = new Date();
+      const yr = 2077;
+      const mo = String(now.getMonth() + 1).padStart(2, '0');
+      const da = String(now.getDate()).padStart(2, '0');
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('hud-clock').innerText = `${yr}.${mo}.${da} ${hh}:${mm}:${ss}`;
+
+      // Random jitter for RAM display
+      if (Math.random() > 0.8) {
+        const ram = (16.0 + Math.random() * 1.5).toFixed(1);
+        document.getElementById('hud-ram').innerText = `${ram} / 32.0 EB`;
+      }
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    /* ==========================================================================
+       5. TOAST NOTIFICATIONS
+       ========================================================================== */
+    let toastTimeout = null;
+    function showToast(text) {
+      const toast = document.getElementById('cyber-toast');
+      const msg = document.getElementById('toast-message');
+      msg.innerText = text;
+      toast.classList.add('show');
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3500);
+    }
+
+    /* ==========================================================================
+       6. CYBERWARE SHOPPING & STAT SIMULATION
+       ========================================================================== */
+    let playerEddies = 777450;
+
+    function buyCyberware(name, price) {
+      playSynthSound('beep');
+      if (playerEddies >= price) {
+        playerEddies -= price;
+        document.getElementById('stat-eddies').innerText = playerEddies.toLocaleString();
+        showToast(`IMPLANTE INSTALADO: ${name.toUpperCase()} (-E$ ${price.toLocaleString()})`);
+        playSynthSound('success');
+        
+        // Boost sync
+        document.getElementById('stat-sync').innerText = "100.0%";
+        document.getElementById('stat-temp').innerText = (40 + Math.floor(Math.random() * 8)) + "°C";
+        
+        logTerminal(`[BIO-LOG] Implante detectado: ${name}. Sincronización al 100%.`, 'success');
+      } else {
+        playSynthSound('error');
+        showToast('ERROR: EURODÓLARES INSUFICIENTES');
+        logTerminal(`[ERROR] Fondos insuficientes para instalar ${name}.`, 'error');
+      }
+    }
+
+    function overclockSystem() {
+      playSynthSound('hack');
+      document.body.classList.add('glitch-active');
+      setTimeout(() => document.body.classList.remove('glitch-active'), 400);
+
+      const tempEl = document.getElementById('stat-temp');
+      tempEl.innerText = "88°C ⚠️";
+      tempEl.style.color = "var(--cp-pink)";
+      
+      showToast('OVERCLOCK ACTIVADO // POTENCIA AL 200% // ALERTA TÉRMICA');
+      logTerminal('[OVERDRIVE] Sistema forzado a 5.8 GHz neural. Subiendo ventilación criogénica...', 'error');
+      
+      setTimeout(() => {
+        tempEl.innerText = "48°C";
+        tempEl.style.color = "var(--cp-cyan)";
+      }, 4000);
+    }
+
+    function scrollToSection(id) {
+      playSynthSound('click');
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    /* ==========================================================================
+       7. BREACH PROTOCOL MINI-GAME
+       ========================================================================== */
+    const hexCodes = ['1C', '55', 'BD', 'E9', '7A', 'FF'];
+    let matrixData = [];
+    let targetSeq = [];
+    let currentStep = 0;
+    let isRowTurn = true;
+    let selectedRow = 0;
+    let selectedCol = 0;
+    let gameActive = true;
+
+    function initBreachGame() {
+      const grid = document.getElementById('breach-grid');
+      const targetContainer = document.getElementById('target-sequence');
+      grid.innerHTML = '';
+      targetContainer.innerHTML = '';
+      currentStep = 0;
+      isRowTurn = true;
+      selectedRow = 0;
+      gameActive = true;
+
+      // Generate 4x4 random hex
+      matrixData = [];
+      for (let r = 0; r < 4; r++) {
+        let row = [];
+        for (let c = 0; c < 4; c++) {
+          row.push(hexCodes[Math.floor(Math.random() * hexCodes.length)]);
+        }
+        matrixData.push(row);
+      }
+
+      // Generate random target sequence of length 3
+      targetSeq = [];
+      for (let i = 0; i < 3; i++) {
+        targetSeq.push(hexCodes[Math.floor(Math.random() * hexCodes.length)]);
+      }
+
+      // Render target sequence
+      targetSeq.forEach((code, idx) => {
+        const box = document.createElement('div');
+        box.className = 'seq-box';
+        box.id = `target-seq-${idx}`;
+        box.innerText = code;
+        targetContainer.appendChild(box);
+      });
+
+      // Render matrix cells
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'matrix-cell';
+          cell.id = `cell-${r}-${c}`;
+          cell.innerText = matrixData[r][c];
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+          
+          cell.addEventListener('click', () => handleCellClick(r, c));
+          grid.appendChild(cell);
+        }
+      }
+
+      updateMatrixHighlights();
+      document.getElementById('breach-msg').innerText = "SELECCIONA UN NODO DE LA FILA SUPERIOR (FILA 1)";
+      document.getElementById('breach-msg').style.color = "var(--cp-cyan)";
+    }
+
+    function updateMatrixHighlights() {
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          const el = document.getElementById(`cell-${r}-${c}`);
+          if (!el || el.classList.contains('used')) continue;
+          
+          el.classList.remove('highlight-row', 'highlight-col');
+          if (isRowTurn && r === selectedRow) {
+            el.classList.add('highlight-row');
+          } else if (!isRowTurn && c === selectedCol) {
+            el.classList.add('highlight-col');
+          }
+        }
+      }
+    }
+
+    function handleCellClick(r, c) {
+      if (!gameActive) return;
+      const cellEl = document.getElementById(`cell-${r}-${c}`);
+      if (cellEl.classList.contains('used')) return;
+
+      // Check validity (row or col turn)
+      if (isRowTurn && r !== selectedRow) {
+        playSynthSound('error');
+        showToast('ERROR: DEBES SELECCIONAR EN LA FILA ACTIVA');
+        return;
+      }
+      if (!isRowTurn && c !== selectedCol) {
+        playSynthSound('error');
+        showToast('ERROR: DEBES SELECCIONAR EN LA COLUMNA ACTIVA');
+        return;
+      }
+
+      playSynthSound('beep');
+      cellEl.classList.add('used');
+      const chosenValue = matrixData[r][c];
+
+      // Check against target sequence
+      if (chosenValue === targetSeq[currentStep]) {
+        const targetBox = document.getElementById(`target-seq-${currentStep}`);
+        if (targetBox) targetBox.classList.add('matched');
+        currentStep++;
+
+        if (currentStep === targetSeq.length) {
+          // Win!
+          playSynthSound('success');
+          gameActive = false;
+          document.getElementById('breach-msg').innerHTML = "<span style='color: #00ff88;'>✔ ¡BREACH PROTOCOL EXITOSO! RECOMPENSA: +E$ 25,000</span>";
+          showToast('🎉 VULNERABILIDAD VENCIDA: +E$ 25,000');
+          playerEddies += 25000;
+          document.getElementById('stat-eddies').innerText = playerEddies.toLocaleString();
+          logTerminal('[HACK EXITOSO] Acceso concedido al servidor corporativo. Extrayendo datos...', 'success');
+          setTimeout(initBreachGame, 3500);
+          return;
+        }
+      } else {
+        // Mismatch
+        logTerminal(`[BREACH] Código ${chosenValue} no coincide con ${targetSeq[currentStep]}.`, 'info');
+      }
+
+      // Switch turn
+      if (isRowTurn) {
+        isRowTurn = false;
+        selectedCol = c;
+        document.getElementById('breach-msg').innerText = `SELECCIONA EN LA COLUMNA ${c + 1}`;
+      } else {
+        isRowTurn = true;
+        selectedRow = r;
+        document.getElementById('breach-msg').innerText = `SELECCIONA EN LA FILA ${r + 1}`;
+      }
+      updateMatrixHighlights();
+    }
+
+    function triggerCyberBreach() {
+      scrollToSection('breach-section');
+      initBreachGame();
+      playSynthSound('hack');
+      showToast('INICIANDO INTERFAZ DE BREACH PROTOCOL...');
+    }
+
+    initBreachGame();
+
+    /* ==========================================================================
+       8. INTERACTIVE NETRUNNER TERMINAL
+       ========================================================================== */
+    const terminalBody = document.getElementById('terminal-body');
+    const terminalInput = document.getElementById('terminal-input');
+
+    function logTerminal(text, type = 'info') {
+      const line = document.createElement('div');
+      line.className = `terminal-log-line ${type}`;
+      line.innerText = text;
+      terminalBody.appendChild(line);
+      terminalBody.scrollTop = terminalBody.scrollHeight;
+    }
+
+    terminalInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const cmd = terminalInput.value.trim().toLowerCase();
+        if (!cmd) return;
+        
+        playSynthSound('click');
+        logTerminal(`V@NETRUNNER:~$ ${cmd}`, 'system');
+        terminalInput.value = '';
+
+        // Execute commands
+        switch (cmd) {
+          case 'help':
+            logTerminal('--- COMANDOS DISPONIBLES EN NIGHT CITY SHELL ---', 'system');
+            logTerminal('  help      - Muestra este menú de ayuda', 'info');
+            logTerminal('  scan      - Escanea vulnerabilidades en la subred', 'info');
+            logTerminal('  hack      - Inicia protocolo de hackeo profundo', 'info');
+            logTerminal('  implants  - Lista implantes instalados', 'info');
+            logTerminal('  eddies    - Consulta balance de Eurodólares', 'info');
+            logTerminal('  matrix    - Reinicia el Breach Protocol', 'info');
+            logTerminal('  overdrive - Dispara aceleración neural', 'info');
+            logTerminal('  clear     - Limpia la pantalla de la terminal', 'info');
+            break;
+
+          case 'scan':
+            playSynthSound('beep');
+            logTerminal('[ESCANEANDO SUBRED LOCAL WATSON-09]...', 'info');
+            setTimeout(() => {
+              logTerminal('-> Nodo Detectado: 192.777.4.2 [ARASAKA ICE NIVEL 4]', 'info');
+              logTerminal('-> Nodo Detectado: 192.777.8.9 [MILITECH COMBAT LINK]', 'info');
+              logTerminal('-> Dispositivos vulnerables: 7 cámaras, 3 torretas, 1 servidor central', 'success');
+              playSynthSound('success');
+            }, 600);
+            break;
+
+          case 'hack':
+            playSynthSound('hack');
+            logTerminal('[INICIANDO DEMONIO PING & REINICIO DE ÓPTICAS]...', 'system');
+            setTimeout(() => {
+              logTerminal('-> Demon cargado en el buffer con éxito.', 'success');
+              showToast('DEMONIO NEURONAL TRANSMITIDO');
+            }, 500);
+            break;
+
+          case 'implants':
+            logTerminal('--- HARDWARE NEURAL REGISTRADO ---', 'system');
+            logTerminal('1. Sandevistan Mk.7 Apogee [SINCRONIZADO]', 'info');
+            logTerminal('2. Mantis Blades Térmicas XT [LISTAS]', 'info');
+            logTerminal('3. Kiroshi Optics Clairvoyance 8K [ACTIVO]', 'info');
+            break;
+
+          case 'eddies':
+            logTerminal(`[CUENTA BANCARIA] Balance actual: E$ ${playerEddies.toLocaleString()}`, 'success');
+            break;
+
+          case 'matrix':
+            initBreachGame();
+            logTerminal('[BREACH] Matriz reiniciada con nuevos vectores criptográficos.', 'success');
+            break;
+
+          case 'overdrive':
+            overclockSystem();
+            break;
+
+          case 'clear':
+            terminalBody.innerHTML = '';
+            logTerminal('[TERMINAL LIMPIA] Esperando instrucciones...', 'system');
+            break;
+
+          default:
+            playSynthSound('error');
+            logTerminal(`[ERROR] Comando desconocido: '${cmd}'. Escribe 'help' para ayuda.`, 'error');
+            break;
+        }
+      }
+    });
+
+    // Initial Welcome sound & toast
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        showToast('BIENVENIDO A CYBERPUNK 777 // NIGHT CITY PROTOCOL');
+      }, 800);
+    });
+
+    // Enable sound on first user click anywhere
+    document.addEventListener('click', () => {
+      initAudio();
+    }, { once: true });
+  </script>
+</body>
+</html>
